@@ -8,13 +8,17 @@ import time
 import matplotlib.pyplot as plt
 from openflexure_stage import OpenFlexureStage
 
+picam2_full_res = (3280, 2464)
+picam2_half_res = tuple([d/2 for d in picam2_full_res])
+picam2_quarter_res = tuple([d/4 for d in picam2_full_res])
+
 def round_resolution(res):
     """Round up the camera resolution to units of 32 and 16 in x and y"""
     return tuple([int(q*np.ceil(res[i]/float(q))) for i, q in enumerate([32,16])])
 
 def decimate_to(shape, image):
     """Decimate an image to reduce its size if it's too big."""
-    decimation = np.max(np.ceil(np.array(image.shape)[:len(shape)]/np.array(shape)))
+    decimation = np.max(np.ceil(np.array(image.shape, dtype=np.float)[:len(shape)]/np.array(shape)))
     return image[::decimation, ::decimation, ...]
 
 def sharpness_sum_lap2(rgb_image):
@@ -48,11 +52,12 @@ class Microscope(object):
         #get an image, see picamera.readthedocs.org/en/latest/recipes2.html
         return buf.reshape(shape)
 
-    def rgb_image(self, use_video_port=True):
+    def rgb_image(self, use_video_port=True, resize=None):
         """Capture a frame from a camera and output to a numpy array"""
-        with picamera.array.PiRGBArray(self.cam) as output:
+        with picamera.array.PiRGBArray(self.cam, size=resize) as output:
             self.cam.capture(output, 
                     format='rgb', 
+                    resize=resize,
                     use_video_port=use_video_port)
         #get an image, see picamera.readthedocs.org/en/latest/recipes2.html
             return output.array
@@ -69,20 +74,38 @@ class Microscope(object):
         self.cam.awb_gains = g
         time.sleep(wait_after)
 
-    def scan_z(self, dz, backlash=0, return_to_start=True):
-        """Scan through a list of (relative) z positions (generator fn)"""
+    def scan_linear(self, rel_positions, backlash=True, return_to_start=True):
+        """Scan through a list of (relative) positions (generator fn)
+        
+        rel_positions should be an nx3-element array (or list of 3 element arrays).  
+        Positions should be relative to the starting position - not a list of relative moves.
+
+        backlash argument is passed to the stage (default true)
+        
+        if return_to_start is True (default) we return to the starting position after a
+        successful scan.  NB we always attempt to return to the starting position if the
+        scan was unsuccessful.
+        """
         starting_position = self.stage.position
+        rel_positions = np.array(rel_positions)
+        assert rel_positions.shape[1] == 3, ValueError("Positions should be 3 elements long.")
         try:
-            self.stage.focus_rel(dz[0]-backlash)
-            self.stage.focus_rel(backlash)
+            self.stage.move_rel(rel_positions[0], backlash=backlash)
             yield 0
 
-            for i, step in enumerate(np.diff(dz)):
-                self.stage.focus_rel(step)
+            for i, step in enumerate(np.diff(rel_positions, axis=0)):
+                self.stage.move_rel(step, backlash=backlash)
                 yield i+1
+        except Exception as e:
+            return_to_start = True # always return to start if it went wrong.
+            raise e
         finally:
             if return_to_start:
-                self.stage.move_abs(starting_position)
+                self.stage.move_abs(starting_position, backlash=backlash)
+
+    def scan_z(self, dz, **kwargs):
+        """Scan through a list of (relative) z positions (generator fn)"""
+        return self.scan_linear([[0,0,z] for z in dz], **kwargs)
 
 
     def autofocus(self, dz, backlash=0, settle=0.5, metric_fn=sharpness_sum_lap2):
@@ -101,7 +124,9 @@ class Microscope(object):
             return self.stage.position[2]
         def measure():
             time.sleep(settle)
-            sharpnesses.append(metric_fn(self.rgb_image()))
+            sharpnesses.append(metric_fn(self.rgb_image(
+                        use_video_port=True, 
+                        resize=(640,480))))
             positions.append(z())
 
         self.stage.focus_rel(dz[0]-backlash)

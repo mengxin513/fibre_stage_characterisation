@@ -85,15 +85,23 @@ class BasicSerialInstrument(object):
                 print "The serial port didn't close cleanly:", e
                 
     def __del__(self):
+        """Close the port when the object is deleted
+        
+        NB if the object is created in a with statement, this will cause
+        the port to be closed at the end of the with block."""
         self.close()
 
     def __enter__(self):
         """When we use this in a with statement, it should be opened already"""
+        self._position_on_enter = self.position
         return self
 
     def __exit__(self, type, value, traceback):
         """Close down the instrument.  This happens in __del__ though."""
-        pass
+        if type is not None:
+            print "An exception occurred inside a with block, resetting "
+            "position to its value at the start of the with block"
+            self.move_abs(self._position_on_enter)
         
     def write(self,query_string):
         """Write a string to the serial port"""

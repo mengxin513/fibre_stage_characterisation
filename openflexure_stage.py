@@ -16,15 +16,57 @@ class OpenFlexureStage(BasicSerialInstrument):
     position = QueriedProperty(get_cmd="p?", response_string=r"%d %d %d")
     step_time = QueriedProperty(get_cmd="dt?", set_cmd="dt %d", response_string="minimum step delay %d")
     ramp_time = QueriedProperty(get_cmd="ramp_time?", set_cmd="ramp_time %d", response_string="ramp time %d")
+    axis_names = ('x', 'y', 'z')
 
     def __init__(self, *args, **kwargs):
         super(OpenFlexureStage, self).__init__(*args, **kwargs)
         assert self.readline().startswith("OpenFlexure Motor Board v0.3")
         time.sleep(2)
+
+    @property
+    def n_axes(self):
+        return len(self.axis_names)
     
-    def move_rel(self, displacement, axis=None):
+    _backlash = None
+    @property
+    def backlash(self):
+        return self._backlash
+
+    @backlash.setter
+    def backlash(self, blsh):
+        try:
+            assert len(blsh) == self.n_axes
+            self._backlash = blsh
+        except:
+            self._backlash = np.array([int(blsh)]*self.n_axes)
+
+    def move_rel(self, displacement, axis=None, backlash=True):
+        """Make a relative move, optionally correcting for backlash.
+
+        displacement: integer or array/list of 3 integers
+        axis: None (for 3-axis moves) or one of 'x','y','z'
+        backlash: (default: True) whether to correct for backlash.
+        """
+        if not backlash or self.backlash is None:
+            return self._move_rel_nobacklash(displacement, axis=axis)
+
         if axis is not None:
-            assert axis in ['x', 'y', 'z'], "Axis must be x, y, or z"
+            # backlash correction is easier if we're always in 3D
+            assert axis in self.axis_names
+            move = np.zeros(self.n_axes)
+            move[np.argmax(np.array(self.axis_names) == axis)] = displacement
+            displacement = move
+
+        initial_move = displacement
+        initial_move -= np.where(self.backlash*displacement < 0,
+                                 self.backlash, np.zeros(self.n_axes))
+        self._move_rel_nobacklash(initial_move)
+        if np.any(displacement - initial_move != 0):
+            self._move_rel_nobacklash(displacement - initial_move)
+
+    def _move_rel_nobacklash(self, displacement, axis=None):
+        if axis is not None:
+            assert axis in self.axis_names, "Axis must be on of {}".format(self.axis_names)
             self.query("mr{} {}".format(axis, int(displacement)))
         else:
             #TODO: assert displacement is 3 integers
@@ -34,10 +76,10 @@ class OpenFlexureStage(BasicSerialInstrument):
         """De-energise the stepper motor coils"""
         self.query("release")
 
-    def move_abs(self, final):
+    def move_abs(self, final, **kwargs):
         new_position = final#h.verify_vector(final)
         rel_mov = np.subtract(new_position, self.position)
-        return self.move_rel(rel_mov)
+        return self.move_rel(rel_mov, **kwargs)
 
     def focus_rel(self, z):
         """Move the stage in the Z direction by z micro steps."""
