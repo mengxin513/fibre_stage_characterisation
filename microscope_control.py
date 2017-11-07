@@ -86,7 +86,9 @@ if __name__ == '__main__':
             step = int(argv.get('<step>',100))
             filepath = validate_filepath(argv['--output'])
             fov = 1
-            with picamera.PiCamera(resolution=(3280/2,2464/2)) as camera:
+            #res = (320/2, 2464/2)
+            res = (640, 480)
+            with picamera.PiCamera(resolution=res) as camera:
                 #time.sleep(3)
                 #camera.start_preview()
                 #time.sleep(3)

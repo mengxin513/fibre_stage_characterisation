@@ -53,13 +53,13 @@ class OpenFlexureStage(BasicSerialInstrument):
         if axis is not None:
             # backlash correction is easier if we're always in 3D
             assert axis in self.axis_names
-            move = np.zeros(self.n_axes)
+            move = np.zeros(self.n_axes, dtype=np.int)
             move[np.argmax(np.array(self.axis_names) == axis)] = displacement
             displacement = move
 
         initial_move = displacement
         initial_move -= np.where(self.backlash*displacement < 0,
-                                 self.backlash, np.zeros(self.n_axes))
+                                 self.backlash, np.zeros(self.n_axes, dtype=self.backlash.dtype))
         self._move_rel_nobacklash(initial_move)
         if np.any(displacement - initial_move != 0):
             self._move_rel_nobacklash(displacement - initial_move)

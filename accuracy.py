@@ -33,6 +33,7 @@ if __name__ == "__main__":
         backlash = 128 #counters backlash
         stage.move_rel([-backlash,-backlash,-backlash])
         stage.move_rel([backlash,backlash,backlash]) #energise motors
+        stage.backlash = backlash
         
         stage_position=stage.position #store the initial position of the lens
 
