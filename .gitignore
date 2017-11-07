@@ -1,0 +1,7 @@
+# git ignore file - these filetypes will not be synced
+*.h5
+*.hdf5
+*.pyc
+*.jpg
+*.jpeg
+
