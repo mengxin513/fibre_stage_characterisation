@@ -1,4 +1,3 @@
-
 import cv2
 import numpy as np
 from scipy import ndimage, signal
@@ -10,11 +9,13 @@ import picamera
 import data_file
 from openflexure_stage import OpenFlexureStage
 import h5py
+from contextlib import closing
 
 if __name__ == "__main__":
 
     with picamera.PiCamera(resolution = (640, 480)) as camera, \
-         OpenFlexureStage('/dev/ttyUSB0') as stage:
+         OpenFlexureStage('/dev/ttyUSB0') as stage, \
+         closing(data_file.Datafile(filename = "orthogonality.hdf5")) as df:
         
         side_length = 4900
         points = 10
@@ -28,7 +29,6 @@ if __name__ == "__main__":
 
         stage_centre = stage.position
 
-        df = data_file.Datafile(filename = "orthogonality.hdf5")
         data_stage = df.new_group("stage position", "orthogonality measurments, moves in a square")
         data_cam = df.new_group("camera position", "orthogonality measurments, moves in a square")
 

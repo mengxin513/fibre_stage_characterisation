@@ -17,6 +17,9 @@ class OpenFlexureStage(BasicSerialInstrument):
     step_time = QueriedProperty(get_cmd="dt?", set_cmd="dt %d", response_string="minimum step delay %d")
     ramp_time = QueriedProperty(get_cmd="ramp_time?", set_cmd="ramp_time %d", response_string="ramp time %d")
     axis_names = ('x', 'y', 'z')
+    light_sensor_gain = QueriedProperty(get_cmd="light_sensor_gain?", set_cmd="light_sensor_gain %d", response_string="light sensor gain %dx")
+    light_sensor_integration_time = QueriedProperty(get_cmd="light_sensor_integration_time?", set_cmd="light_sensor_integration_time %d", response_string="light sensor integration time %d ms")
+    light_sensor_fullspectrum = QueriedProperty(get_cmd="light_sensor_fullspectrum?", response_string="%d")
 
     def __init__(self, *args, **kwargs):
         super(OpenFlexureStage, self).__init__(*args, **kwargs)
