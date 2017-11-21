@@ -14,7 +14,6 @@ from openflexure_stage import OpenFlexureStage
 import threading
 import matplotlib.pyplot as plt
 import matplotlib
-import data_file
 import h5py
 
 if __name__ == "__main__":
@@ -30,10 +29,7 @@ if __name__ == "__main__":
         frame = get_numpy_image(camera, True)
         print "Frame is {}".format(frame.shape) #print resolution
         
-        backlash = 128 #counters backlash
-        stage.move_rel([-backlash,-backlash,-backlash])
-        stage.move_rel([backlash,backlash,backlash]) #energise motors
-        stage.backlash = backlash
+        stage.backlash = 256 #counters backlash
         
         stage_position=stage.position #store the initial position of the lens
 
@@ -85,8 +81,8 @@ if __name__ == "__main__":
 
         #: means everything
         t=data[0,:]
-        x=data[1,:]
-        y=data[2,:]
+        x=data[1,:]*0.341
+        y=data[2,:]*0.341
 
         #plot the graph
         fig, axes = plt.subplots(1,2)

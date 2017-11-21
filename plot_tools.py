@@ -1,6 +1,5 @@
 
 #import libraries
-import sys
 import cv2
 import numpy as np
 from scipy import ndimage, signal
@@ -14,8 +13,8 @@ matplotlib.rcParams.update({'font.size': 8})
 def plot_tools(data):
     #: means everything
     t = data[0, :]
-    x = data[1, :]
-    y = data[2, :]
+    x = data[1, :]*0.341
+    y = data[2, :]*0.341
 
     #plot the graph
     fig = plt.figure()
@@ -25,6 +24,7 @@ def plot_tools(data):
     ax2 = ax.twinx()
     yt_plot = ax2.plot(t, y, "b-", label = 'Y')
     
+    #set legends
     t_plot = xt_plot + yt_plot
     labs = [l.get_label() for l in t_plot]
     ax.legend(t_plot, labs, loc = 'upper left')
@@ -37,5 +37,4 @@ def plot_tools(data):
     #set title
     plt.title("Drift Experiment")
 
-    #show graph
     return fig

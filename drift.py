@@ -28,7 +28,7 @@ if __name__ == "__main__":
         ms.freeze_camera_settings()
         frame = get_numpy_image(camera, True)
 
-        df = data_file.Datafile(filename="positions.hdf5") #creates the .hdf5 file to save the data
+        df = data_file.Datafile(filename="drift.hdf5") #creates the .hdf5 file to save the data
         data_gr = df.new_group("test_data", "A file of data collected to test this code works")
         #puts the data file into a group with description
 
@@ -58,7 +58,7 @@ if __name__ == "__main__":
                     #!RWB! because you create a new data array each time you go round the while loop 
                 df.add_data(data, data_gr, "data") #writes data to .hdf5 file
                 #!RWB!: might be easiest just to save an image every 100 frames, then you don't need threads
-                cv2.imwrite("/home/pi/microscope/frames/drift_%s.jpg" % time.strftime("%Y%m%d_%H%M%S"), frame)
+                cv2.imwrite("/home/pi/dev/fibre_stage_characterisation/frames/drift_%s.jpg" % time.strftime("%Y%m%d_%H%M%S"), frame)
         except KeyboardInterrupt:
             print "Got a keyboard interrupt, stopping"
             
