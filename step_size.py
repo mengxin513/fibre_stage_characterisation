@@ -28,6 +28,9 @@ if __name__ == "__main__":
         
         stage_position = stage.position
 
+        df = data_file.Datafile(filename = "step_size.hdf5")
+        data_step = df.new_group("step size", "step size measurments")
+
         data = np.zeros((2,50))
         
         camera.start_preview()
@@ -35,7 +38,7 @@ if __name__ == "__main__":
         image = get_numpy_image(camera, greyscale=True)
         templ8 = image[100:-100,100:-100]
 
-        stage.move_rel([0, (-move), 0])
+        stage.move_rel([(-move), 0, 0])
 
         frame = get_numpy_image(camera, True)
         spot_coord = find_template(templ8, frame)
@@ -43,7 +46,7 @@ if __name__ == "__main__":
         y = spot_coord[1]
 
         for i in range(data.shape[1]):
-            stage.move_rel([0, (2*move/data.shape[1]), 0])
+            stage.move_rel([(2*move/data.shape[1]), 0, 0])
             #a range of move distances to see how step size changes as the move distance increases
             time.sleep(1)
             #sleeps before frame saves to make sure the right image is saved
@@ -55,6 +58,8 @@ if __name__ == "__main__":
             data[0, i] = 2*move*(i+1)/data.shape[1]
             data[1, i] = abs_move/(2*move*(i+1)/data.shape[1])
         
+        df.add_data(data, data_step, "step size")
+
         stage.move_abs(stage_position)
 
     matplotlib.rcParams.update({'font.size': 8})

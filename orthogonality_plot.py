@@ -9,16 +9,18 @@ import data_file
 
 print "Loading data..." #indication of the programme running
 df = h5py.File("orthogonality.hdf5", "r") #reads data from file
+group = df["Orthogonality"] 
 
-group = df[Orthogonality000]
-dset = group[step_1000]
+for i in [1,10,25]:
 
-#plot the graphs for each move
-fig, ax = plt.subplots(1, 1)
+    dset = group["step_%d" % i]
 
-#r+ means plot using crosses
-ax.plot(dset[0,:]*0.341, dset[1,:]*0.341, 'r+')
+    #plot the graphs for each move
+    fig, ax = plt.subplots(1, 1)
 
-#set axis lables
-ax.set_xlabel('X [$\mathrm{\mu m}$]')
-ax.set_ylabel('Y [$\mathrm{\mu m}$]')
+    #r+ means plot using crosses
+    ax.plot(dset[0,:]*0.341, dset[1,:]*0.341, 'r+')
+
+    #set axis lables
+    ax.set_xlabel('X [$\mathrm{\mu m}$]')
+    ax.set_ylabel('Y [$\mathrm{\mu m}$]')

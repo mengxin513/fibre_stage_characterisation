@@ -1,3 +1,4 @@
+
 import cv2
 import numpy as np
 from scipy import ndimage, signal
@@ -29,11 +30,12 @@ if __name__ == "__main__":
 
         stage_centre = stage.position
 
+        df = data_file.Datafile(filename = "orthogonality.hdf5")
         data_stage = df.new_group("stage position", "orthogonality measurments, moves in a square")
         data_cam = df.new_group("camera position", "orthogonality measurments, moves in a square")
 
-        stage_pos = np.zeros((3, 4*points))
-        cam_pos = np.zeros((2, 4*points))
+        stage_pos = np.zeros((3, 2*points))
+        cam_pos = np.zeros((2, 2*points))
 
         stage.move_rel([-3500*np.cos(np.pi / 4), -3500*np.sin(np.pi / 4), 0])
 
@@ -48,18 +50,6 @@ if __name__ == "__main__":
             frame = get_numpy_image(camera, True)
             cam_pos[0:, j+points] = find_template(templ8, frame)
             stage.move_rel([0, side_length/points, 0])
-            time.sleep(1)
-        for k in range(points):
-            stage_pos[0:, k+2*points] = stage.position
-            frame = get_numpy_image(camera, True)
-            cam_pos[0:, k+2*points] = find_template(templ8, frame)
-            stage.move_rel([-side_length/points, 0, 0])
-            time.sleep(1)
-        for m in range(points):
-            stage_pos[0:, m+3*points] = stage.position
-            frame = get_numpy_image(camera, True)
-            cam_pos[0:, m+3*points] = find_template(templ8, frame)
-            stage.move_rel([0, -side_length/points, 0])
             time.sleep(1)
 
         df.add_data(stage_pos, data_stage, "stage position")

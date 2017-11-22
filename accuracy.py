@@ -14,13 +14,14 @@ from openflexure_stage import OpenFlexureStage
 import threading
 import matplotlib.pyplot as plt
 import matplotlib
+import data_file
 import h5py
 
 if __name__ == "__main__":
 
     with picamera.PiCamera(resolution=(640,480), framerate = 100) as camera, OpenFlexureStage('/dev/ttyUSB0') as stage:
         
-        N_frames = 1000
+        N_frames = 5000
         
         #loads camera from picamera and set the stage as the arduino, lower resolution can speed up the programme
         camera.start_preview() #shows preview of camera
@@ -29,7 +30,7 @@ if __name__ == "__main__":
         frame = get_numpy_image(camera, True)
         print "Frame is {}".format(frame.shape) #print resolution
         
-        stage.backlash = 256 #counters backlash
+        stage.backlash = 128 #counters backlash
         
         stage_position=stage.position #store the initial position of the lens
 
