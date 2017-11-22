@@ -19,8 +19,8 @@ import h5py
 import random
 from contextlib import closing
 
-def measure_txy(n, start_time, camera, templ8): #everything used in a definition should be put in as an argument
-    """Measure position n times and return a t,x,y array."""
+def measure_txy(samples, start_time, camera, templ8): #everything used in a definition should be put in as an argument
+    """Measure position samples times and return a t,x,y array."""
     result = np.zeros((3, samples)) #creates an empty array of zeros
     for i in range(samples):
         frame = get_numpy_image(camera, True) #get frame
@@ -42,7 +42,7 @@ if __name__ == "__main__":
          closing(data_file.Datafile(filename="repeat.hdf5")) as df: #closes once the programme completes, avoids try-finally
     #loads camera from picamera and set the stage as the arduino, lower resolution can speed up the programme
         
-        n_moves = 5
+        n_moves = 50
         samples = 5
 
         stage.backlash = 128
