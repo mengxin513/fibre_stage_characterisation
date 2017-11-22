@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     with picamera.PiCamera(resolution=(640,480)) as camera, OpenFlexureStage('/dev/ttyUSB0') as stage:
 
-        N_frames = 100
+        N_frames = 1000
 		counter = 0
 
         #loads camera from picamera and set the stage as the arduino, lower resolution can speed up the programme
@@ -58,17 +58,11 @@ if __name__ == "__main__":
                     data[1, i] = spot_coord[0]
                     data[2, i] = spot_coord[1]
                     data[0, i] = time.time() - start_t
-					counter += 1
-                    #I put this last so it's easy to tell which data points are valid
-                    #!RWB!: this is starting a new thread to take images *every frame* - i.e. you will have started 100 threads.
-                    #pic_thread = threading.Thread(target=picture, args=(frame,))
-                    #pic_thread.start()
-                    #!RWB! because you create a new data array each time you go round the while loop 
-				if counter % 1000 == 0:
-					df.add_data(data, data_gr, "data") #writes data to .hdf5 file
-					imgfile_location = "/home/pi/microscope/frames/drift_%s.jpg" % time.strftime("%Y%m%d_%H%M%S")
-					cv2.imwrite(imgfile_location, frame)
-					api.update_with_media(imgfile_location, status="I'm currently at %d, %d" %spot_coord[0]] %spot_coord[1])
+				df.add_data(data, data_gr, "data") #writes data to .hdf5 file
+				imgfile_location = "/home/pi/microscope/frames/drift_%s.jpg" % time.strftime("%Y%m%d_%H%M%S")
+				if time.gmtime(time.time())[3] in [0, 4, 8, 12, 16, 20]: #tweets a picture and co-ordinates every 4 hours
+					api.update_with_media(imgfile_location, status="I'm currently at %d, %d" %spot_coord[0]] %spot_coord[1])	
+					
         except KeyboardInterrupt:
             print "Got a keyboard interrupt, stopping"
             
