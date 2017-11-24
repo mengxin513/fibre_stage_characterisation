@@ -43,7 +43,8 @@ if __name__ == "__main__":
         templ8 = image[100:-100,100:-100] #crops image
 
         loop = True
-
+		tweet = True
+		
         start_t = time.time() #measure starting time
 
 	#!RWB!: you could also wrap the whole while loop in a try: block - that might be easier than having the try
@@ -60,8 +61,14 @@ if __name__ == "__main__":
                     data[0, i] = time.time() - start_t
 				df.add_data(data, data_gr, "data") #writes data to .hdf5 file
 				imgfile_location = "/home/pi/microscope/frames/drift_%s.jpg" % time.strftime("%Y%m%d_%H%M%S")
-				if time.gmtime(time.time())[3] in [0, 4, 8, 12, 16, 20]: #tweets a picture and co-ordinates every 4 hours
-					api.update_with_media(imgfile_location, status="I'm currently at %d, %d" %spot_coord[0]] %spot_coord[1])	
+				try:
+					if time.gmtime(time.time())[3] in [0, 4, 8, 12, 16, 20] and tweet: #tweets a picture and co-ordinates every 4 hours
+						api.update_with_media(imgfile_location, status="I'm currently at %d, %d" %spot_coord[0]] %spot_coord[1])
+						tweet = False
+					elif time.gmtime(time.time())[3] not in [0, 4, 8, 12, 16, 20]:
+						tweet = True
+				except:
+					pass 
 					
         except KeyboardInterrupt:
             print "Got a keyboard interrupt, stopping"
