@@ -19,9 +19,9 @@ import h5py
 
 if __name__ == "__main__":
 
-    with picamera.PiCamera(resolution=(640,480), framerate = 100) as camera, OpenFlexureStage('/dev/ttyUSB0') as stage:
+    with picamera.PiCamera(resolution=(640,480), framerate = 70) as camera, OpenFlexureStage('/dev/ttyUSB0') as stage:
         
-        N_frames = 5000
+        N_frames = 4000
         
         #loads camera from picamera and set the stage as the arduino, lower resolution can speed up the programme
         camera.start_preview() #shows preview of camera

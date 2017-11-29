@@ -20,15 +20,15 @@ import tweepy
 
 if __name__ == "__main__":
 
-	#authorises the program to acces the twitter account
-	auth = tweepy.OAuthHandler("jGqqyUe9Rp4krzKdd6xprbQmH", "SMMkM5rdzuxiWuL5fIktaeT2EXFHh38AxfnGaG7yJNw4C6xVGk")
-	auth.set_access_token("931158082415144966-vFbJaINi7QseuguxTEiIiQnInfjL57Q", "CGHKQ6cKxTyqwVz4BpcXyAjPNCqLLhzzS7CMssbFLDxe4")
-	api = tweepy.API(auth)
+    #authorises the program to acces the twitter account
+    auth = tweepy.OAuthHandler("jGqqyUe9Rp4krzKdd6xprbQmH", "SMMkM5rdzuxiWuL5fIktaeT2EXFHh38AxfnGaG7yJNw4C6xVGk")
+    auth.set_access_token("931158082415144966-vFbJaINi7QseuguxTEiIiQnInfjL57Q", "CGHKQ6cKxTyqwVz4BpcXyAjPNCqLLhzzS7CMssbFLDxe4")
+    api = tweepy.API(auth)
 
     with picamera.PiCamera(resolution=(640,480)) as camera, OpenFlexureStage('/dev/ttyUSB0') as stage:
 
         N_frames = 1000
-		counter = 0
+	counter = 0
 
         #loads camera from picamera and set the stage as the arduino, lower resolution can speed up the programme
         ms = microscope.Microscope(camera, stage)
@@ -45,6 +45,8 @@ if __name__ == "__main__":
         loop = True
 
         start_t = time.time() #measure starting time
+        
+        start_pos = stage.position
 
 	#!RWB!: you could also wrap the whole while loop in a try: block - that might be easier than having the try
 	# block inside the while loop.
@@ -58,10 +60,11 @@ if __name__ == "__main__":
                     data[1, i] = spot_coord[0]
                     data[2, i] = spot_coord[1]
                     data[0, i] = time.time() - start_t
-				df.add_data(data, data_gr, "data") #writes data to .hdf5 file
-				imgfile_location = "/home/pi/microscope/frames/drift_%s.jpg" % time.strftime("%Y%m%d_%H%M%S")
-				if time.gmtime(time.time())[3] in [0, 4, 8, 12, 16, 20]: #tweets a picture and co-ordinates every 4 hours
-					api.update_with_media(imgfile_location, status="I'm currently at %d, %d" %spot_coord[0]] %spot_coord[1])	
+		    df.add_data(data, data_gr, "data") #writes data to .hdf5 file
+		    imgfile_location = "/home/pi/dev/fibre_stage_characterisation/frames/drift_%s.jpg" % time.strftime("%Y%m%d_%H%M%S")
+		    cv2.imwrite(imgfile_location, frame)
+		    #if time.gmtime(time.time())[3] in [0, 4, 8, 12, 16, 20]: #tweets a picture and co-ordinates every 4 hours
+                    api.update_with_media(imgfile_location, status="I've drifted [%d, %d] microns since I started" %((start_pos[0]-spot_coord[0])*0.341, (start_pos[1]-spot_coord[1])*0.341))	
 					
         except KeyboardInterrupt:
             print "Got a keyboard interrupt, stopping"
