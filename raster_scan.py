@@ -7,11 +7,12 @@ import data_file
 if __name__ == "__main__":
     with OpenFlexureStage("/dev/ttyUSB0") as stage:
 
-        gain = 9876 #maximum gain to detect faint signal
+        stage.light_sensor_gain = 9876 #maximum gain to detect faint signal
         length = 100 #initial side length of spiral
-        step = 10 #move distance per step
+        step = 50 #move distance per step
         move = 0 #distance already moved
         i = 0 #counter
+        threshold = 15000
 
         backlash = None
 
@@ -29,8 +30,8 @@ if __name__ == "__main__":
         i = i + 1
         print reading
 
-        while(reading < 100): #avoids background noise
-            while(move <= length):
+        while(reading < threshold): #avoids background noise
+            while(move <= length and reading < threshold):
                 stage.move_rel([step, 0, 0])
                 reading = stage.light_sensor_fullspectrum #takes a reading after each degree of movement
                 intensity_data[0, i] = reading
@@ -41,7 +42,7 @@ if __name__ == "__main__":
                 print reading
             length = length + 30
             move = 0
-            while(move <= length):
+            while(move <= length and reading < threshold):
                 stage.move_rel([0, step, 0])
                 reading = stage.light_sensor_fullspectrum
                 intensity_data[0, i] = reading
@@ -52,7 +53,7 @@ if __name__ == "__main__":
                 print reading
             length = length + 30
             move = 0
-            while(move <= length):
+            while(move <= length and reading < threshold):
                 stage.move_rel([-step, 0, 0])
                 reading = stage.light_sensor_fullspectrum
                 intensity_data[0, i] = reading
@@ -63,7 +64,7 @@ if __name__ == "__main__":
                 print reading
             length = length + 30
             move = 0
-            while(move <= length):
+            while(move <= length and reading < threshold):
                 stage.move_rel([0, -step, 0])
                 reading = stage.light_sensor_fullspectrum
                 intensity_data[0, i] = reading
