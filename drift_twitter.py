@@ -17,9 +17,11 @@ import matplotlib
 import data_file
 import h5py
 import tweepy
+import twitter_keys
 
 if __name__ == "__main__":
 
+<<<<<<< HEAD
     #authorises the program to acces the twitter account
 <<<<<<< HEAD
     auth = tweepy.OAuthHandler("jGqqyUe9Rp4krzKdd6xprbQmH", "SMMkM5rdzuxiWuL5fIktaeT2EXFHh38AxfnGaG7yJNw4C6xVGk")
@@ -35,6 +37,16 @@ if __name__ == "__main__":
 <<<<<<< HEAD
 	counter = 0
 =======
+=======
+    with picamera.PiCamera(resolution=(640,480)) as camera, OpenFlexureStage('/dev/ttyUSB0') as stage:
+        
+        #authorises the program to acces the twitter account
+        auth = tweepy.OAuthHandler(twitter_keys.consumer_key, twitter_keys.consumer_secret)
+        auth.set_access_token(twitter_keys.access_token,twitter_keys.access_token_secret)
+        api = tweepy.API(auth)
+        
+        N_frames = 100
+>>>>>>> 1eaed028664b306b8a501db4685b9e2d9dac4ae4
         counter = 0
 >>>>>>> 09487c4e37ea2bb7a74b7582b612a754f0288557
 
@@ -43,7 +55,7 @@ if __name__ == "__main__":
         ms.freeze_camera_settings()
         frame = get_numpy_image(camera, True)
 
-        df = data_file.Datafile(filename="positions.hdf5") #creates the .hdf5 file to save the data
+        df = data_file.Datafile(filename="drift_41217.hdf5") #creates the .hdf5 file to save the data
         data_gr = df.new_group("test_data", "A file of data collected to test this code works")
         #puts the data file into a group with description
 
@@ -51,15 +63,15 @@ if __name__ == "__main__":
         templ8 = image[100:-100,100:-100] #crops image
 
         loop = True
-	tweet = True
-	
+        tweet = True
+
         start_t = time.time() #measure starting time
         
         start_pos = stage.position
 
 
         try:
-            while True:
+            while loop:
                 data = np.zeros((3, N_frames)) #creates the array in which data is stored
                 for i in range(data.shape[1]):
                 #takes 100 images and compares the location of the spot with the template
@@ -68,6 +80,7 @@ if __name__ == "__main__":
                     data[1, i] = spot_coord[0]
                     data[2, i] = spot_coord[1]
                     data[0, i] = time.time() - start_t
+<<<<<<< HEAD
 		    df.add_data(data, data_gr, "data") #writes data to .hdf5 file
 <<<<<<< HEAD
 		    imgfile_location = "/home/pi/dev/fibre_stage_characterisation/frames/drift_%s.jpg" % time.strftime("%Y%m%d_%H%M%S")
@@ -88,6 +101,19 @@ if __name__ == "__main__":
                         pass 
 				    
 >>>>>>> 09487c4e37ea2bb7a74b7582b612a754f0288557
+=======
+                df.add_data(data, data_gr, "data") #writes data to .hdf5 file
+                imgfile_location = "/home/pi/dev/fibre_stage_characterisation/frames/drift_%s.jpg" % time.strftime("%Y%m%d_%H%M%S")
+                cv2.imwrite(imgfile_location, frame)
+                try:
+                    if time.gmtime(time.time())[3] in [0, 4, 8, 12, 16, 20] and tweet: #tweets a picture and co-ordinates every 4 hours
+                        api.update_with_media(imgfile_location, status="I'm currently at %d, %d" %(spot_coord[0], spot_coord[1]))
+                        tweet = False
+                    elif time.gmtime(time.time())[3] not in [0, 4, 8, 12, 16, 20]:
+                        tweet = True
+                except:
+                    pass
+>>>>>>> 1eaed028664b306b8a501db4685b9e2d9dac4ae4
         except KeyboardInterrupt:
             print "Got a keyboard interrupt, stopping"
             
