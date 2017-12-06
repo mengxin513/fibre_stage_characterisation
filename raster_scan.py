@@ -3,16 +3,20 @@ from openflexure_stage import OpenFlexureStage
 import numpy as np
 import h5py
 import data_file
+import sys
 
 if __name__ == "__main__":
     with OpenFlexureStage("/dev/ttyUSB0") as stage:
-
+        
         stage.light_sensor_gain = 9876 #maximum gain to detect faint signal
-        length = 100 #initial side length of spiral
-        step = 50 #move distance per step
+        length = 500 #initial side length of spiral
+        step = 100 #move distance per step
         move = 0 #distance already moved
         i = 0 #counter
-        threshold = 15000
+        try:
+            threshold = int(sys.argv[1])
+        except:
+            threshold = 5000
 
         backlash = None
 
@@ -78,3 +82,4 @@ if __name__ == "__main__":
 
         df.add_data(intensity_data, data_intensity, "intensity reading")
         df.add_data(stage_data, data_stage, "stage position")
+        
