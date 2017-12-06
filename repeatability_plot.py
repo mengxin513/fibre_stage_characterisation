@@ -13,7 +13,8 @@ df = h5py.File("repeat.hdf5", "r") #reads data from file
 n = len(df) #finds the number of items in the file
 dist = np.zeros([1, n]) #creates array of zeros
 mean_error = np.zeros([1, n])
-for i in range(n):
+for i in range(n):   
+    fig, ax = plt.subplots(1, 1) #plot the graphs for each move
     group = df["repeatability%03d" % i] #loads data groups
     m = len(group)
     mean_diff = np.zeros([2,m])
@@ -28,6 +29,7 @@ for i in range(n):
         diff = np.zeros([2, p])
         for k in range(p):
             diff[:, k] = final_c[1:, k] - init_c[1:, k] #1: excludes the 0th element
+            ax.plot(init_c[1:,k], final_c[1:,k])
         mean_diff[:, j] = np.mean(diff, axis = 1) #takes the average of each column
         move[:, j] = moved_s[:] - init_s[:]
     abs_move = np.sqrt(np.sum(move**2, axis = 0)) #finds the average across a row
@@ -35,12 +37,9 @@ for i in range(n):
     dist[:, i] = np.mean(abs_move, axis = 0) #stores the mean distace moved
     mean_error[:, i] = np.mean(error, axis = 0) #stores the mean error for each distance
 
-    #plot the graphs for each move
-    fig, ax = plt.subplots(1, 1)
 
     #r+ means plot using crosses
     ax.plot(mean_diff[0, :]*0.341, mean_diff[1, :]*0.341, 'r+')
-
     #set axis lables
     ax.set_xlabel('X [$\mathrm{\mu m}$]')
     ax.set_ylabel('Y [$\mathrm{\mu m}$]')

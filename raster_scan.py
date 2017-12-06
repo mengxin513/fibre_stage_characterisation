@@ -16,7 +16,7 @@ if __name__ == "__main__":
         try:
             threshold = int(sys.argv[1])
         except:
-            threshold = 5000
+            threshold = 500
 
         backlash = None
 

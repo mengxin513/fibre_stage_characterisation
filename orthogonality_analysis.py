@@ -22,7 +22,7 @@ A, res, rank, s = np.linalg.lstsq(pixel_shifts, location_shifts)
 x = np.array([1,0]) 
 y = np.array([0,1])
 
-#dot products of A and x and y unit vectors to find x and y components of A
+#dot products of A with x and y unit vectors to find x and y components of A
 A_x = A*x
 A_y = A*y
 
