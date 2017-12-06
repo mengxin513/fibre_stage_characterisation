@@ -45,8 +45,8 @@ if __name__ == "__main__":
         n_moves = 50
         samples = 5
 
-        stage.backlash = None
-        b = [128,128,128]
+        stage.backlash = 0
+        b = [128,128,0]
 
         camera.start_preview() #shows preview of camera
 
