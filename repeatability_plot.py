@@ -49,7 +49,7 @@ for i in range(n):
 fig, ax2 = plt.subplots(1, 1)
 
 #r- mean plot using a solid red line
-ax2.plot(dist[0, :]*0.009, mean_error[0, :]*0.341, 'r-')
+ax2.plot(dist[0, :]*0.009, mean_error[0, :]*0.341*4, 'r-')
 
 #set axis lables
 ax2.set_xlabel('Move Distance [$\mathrm{\mu m}$]')

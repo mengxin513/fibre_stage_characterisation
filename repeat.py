@@ -39,13 +39,14 @@ if __name__ == "__main__":
 
     with picamera.PiCamera(resolution=(640,480)) as camera, \
          OpenFlexureStage('/dev/ttyUSB0') as stage, \
-         closing(data_file.Datafile(filename="repeat.hdf5")) as df: #closes once the programme completes, avoids try-finally
+         closing(data_file.Datafile(filename="repeat_2.hdf5")) as df: #closes once the programme completes, avoids try-finally
     #loads camera from picamera and set the stage as the arduino, lower resolution can speed up the programme
         
         n_moves = 50
         samples = 5
 
-        stage.backlash = 128
+        stage.backlash = None
+        b = [128,128,128]
 
         camera.start_preview() #shows preview of camera
 
@@ -62,9 +63,11 @@ if __name__ == "__main__":
                 move_group['init_stage_position'] = stage.position #saves initial stage position
                 move_group['init_cam_position'] = measure_txy(samples, start_time, camera, templ8) #saves txy before movement
                 move_vect = random_point(dist)
+                stage.move_rel(b)
                 stage.move_rel(move_vect) #move by amount move_vect
                 time.sleep(1)
                 move_group['moved_stage_position'] = stage.position #saves moved stage position
+                stage.move_rel(b)
                 stage.move_rel(np.negative(move_vect)) #move back by the same amount move_vect
                 time.sleep(1)
                 move_group['final_stage_position'] = stage.position #saves final stage position
