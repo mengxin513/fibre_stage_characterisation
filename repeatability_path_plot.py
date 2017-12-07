@@ -29,6 +29,6 @@ for i in range(n):
         diff = np.zeros([2, p])
         for k in range(p):
             diff[:, k] = final_c[1:, k] - init_c[1:, k] #1: excludes the 0th element
-            ax.plot(init_c[1:,k]*0.341, final_c[1:,k]*0.341)
+            ax.plot(init_c[1:,k]*0.341, final_c[1:,k]*0.341, marker='+', linestyle = '-')
 
 plt.show() #show plots on screen

@@ -9,7 +9,7 @@ from scipy import ndimage, signal
 import data_file
 
 print "Loading data..." #indication of the programme running
-df = h5py.File("repeat.hdf5", "r") #reads data from file
+df = h5py.File("repeat_2.hdf5", "r") #reads data from file
 n = len(df) #finds the number of items in the file
 dist = np.zeros([1, n]) #creates array of zeros
 mean_error = np.zeros([1, n])
@@ -29,7 +29,6 @@ for i in range(n):
         diff = np.zeros([2, p])
         for k in range(p):
             diff[:, k] = final_c[1:, k] - init_c[1:, k] #1: excludes the 0th element
-            ax.plot(init_c[1:,k]*0.341, final_c[1:,k]*0.341)
         mean_diff[:, j] = np.mean(diff, axis = 1) #takes the average of each column
         move[:, j] = moved_s[:] - init_s[:]
     abs_move = np.sqrt(np.sum(move**2, axis = 0)) #finds the average across a row
