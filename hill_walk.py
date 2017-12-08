@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
         df = data_file.Datafile(filename = "hillwalk.hdf5")
         data_intensity = df.new_group("intensity reading over time", "hill walk")
-        raw_data = df.new_group("data taken by take_data function", "hill walk")
+        raw_data = df.new_group("data", "hill walk")
 
         intensity_data = np.zeros((100, 5))
 
@@ -51,7 +51,7 @@ if __name__ == "__main__":
                 while True:
                     data = take_data(stage, points, samples, step_size, axis)
                     print data
-                    df.add_data(data, raw_data, "data taken by take_data function")
+                    df.add_data(data, raw_data, "data")
                     if np.all(data[:, 0] < 10) == True:
                         current_gain = stage.light_sensor_gain
                         if current_gain < np.max(gain):

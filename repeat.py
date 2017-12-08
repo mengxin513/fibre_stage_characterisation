@@ -42,15 +42,16 @@ if __name__ == "__main__":
          closing(data_file.Datafile(filename="repeat_2.hdf5")) as df: #closes once the programme completes, avoids try-finally
     #loads camera from picamera and set the stage as the arduino, lower resolution can speed up the programme
         
-        n_moves = 50
+        n_moves = 10
         samples = 5
 
         stage.backlash = 0
-        b = [128,128,0]
+        bi = [128,128,0]
+        bo = [-128,-128,0]
 
         camera.start_preview() #shows preview of camera
 
-        for dist in [1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384]:
+        for dist in [1,2,4,8,16,32,64,128,256,512,1024,1500,2048,3000,4096]:
             image = get_numpy_image(camera, greyscale=True) #gets template
             templ8 = image[100:-100,100:-100]
             start_time = time.time() #stores starting time
@@ -63,11 +64,13 @@ if __name__ == "__main__":
                 move_group['init_stage_position'] = stage.position #saves initial stage position
                 move_group['init_cam_position'] = measure_txy(samples, start_time, camera, templ8) #saves txy before movement
                 move_vect = random_point(dist)
-                stage.move_rel(b)
+                stage.move_rel(bi)
+                stage.move_rel(bo)
                 stage.move_rel(move_vect) #move by amount move_vect
                 time.sleep(1)
                 move_group['moved_stage_position'] = stage.position #saves moved stage position
-                stage.move_rel(b)
+                stage.move_rel(bi)
+                stage.move_rel(bo)
                 stage.move_rel(np.negative(move_vect)) #move back by the same amount move_vect
                 time.sleep(1)
                 move_group['final_stage_position'] = stage.position #saves final stage position
