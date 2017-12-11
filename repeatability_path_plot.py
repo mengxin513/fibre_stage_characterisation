@@ -30,28 +30,5 @@ for i in range(n):
         for k in range(p):
             diff[:, k] = final_c[1:, k] - init_c[1:, k] #1: excludes the 0th element
             ax.plot(init_c[1:,k]*0.341, final_c[1:,k]*0.341)
-        mean_diff[:, j] = np.mean(diff, axis = 1) #takes the average of each column
-        move[:, j] = moved_s[:] - init_s[:]
-    abs_move = np.sqrt(np.sum(move**2, axis = 0)) #finds the average across a row
-    error = np.sqrt(np.sum(mean_diff**2, axis = 0)) #averages all the differences in position after movement
-    dist[:, i] = np.mean(abs_move, axis = 0) #stores the mean distace moved
-    mean_error[:, i] = np.mean(error, axis = 0) #stores the mean error for each distance
-
-
-    #r+ means plot using crosses
-    ax.plot(mean_diff[0, :]*0.341, mean_diff[1, :]*0.341, 'r+')
-    #set axis lables
-    ax.set_xlabel('X [$\mathrm{\mu m}$]')
-    ax.set_ylabel('Y [$\mathrm{\mu m}$]')
-
-#plot the graph for the entire run
-fig, ax2 = plt.subplots(1, 1)
-
-#r- mean plot using a solid red line
-ax2.plot(dist[0, :]*0.009, mean_error[0, :]*0.341*4, 'r-')
-
-#set axis lables
-ax2.set_xlabel('Move Distance [$\mathrm{\mu m}$]')
-ax2.set_ylabel('Error [$\mathrm{\mu m}$]')
 
 plt.show() #show plots on screen

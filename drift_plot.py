@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from plot_tools import plot_tools
 
 print "Loading data..." #indication of the programme running
-df = h5py.File("drift.hdf5", "r") #reads data from file
+df = h5py.File("drift_41217.hdf5", "r") #reads data from file
 group = df["test_data000"] #loads a data group
 
 n = len(group) #finds the number of elements in the group

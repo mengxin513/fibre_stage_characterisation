@@ -110,12 +110,15 @@ class OpenFlexureStage(BasicSerialInstrument):
         need to worry about that here.
         """
         if type is not None:
-            print "An exception occurred inside a with block, resetting "
-            "position to its value at the start of the with block"
+            print ("An exception occurred inside a with block, resetting " +
+                   "position to its value at the start of the with block")
             try:
+                time.sleep(0.5)
                 self.move_abs(self._position_on_enter)
-            except:
-                print "A further error occurred trying to reset position."
+            except Exception as e:
+                print("A further exception occurred when resetting position: {}".format(e))
+            print "Move completed, raising exception..."
+            raise value #propagate the exception
                 
     def query(self, message, *args, **kwargs):
         """Send a message and read the response.  See BasicSerialInstrument.query()"""
