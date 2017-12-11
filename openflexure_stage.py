@@ -17,9 +17,9 @@ class OpenFlexureStage(BasicSerialInstrument):
     step_time = QueriedProperty(get_cmd="dt?", set_cmd="dt %d", response_string="minimum step delay %d")
     ramp_time = QueriedProperty(get_cmd="ramp_time?", set_cmd="ramp_time %d", response_string="ramp time %d")
     axis_names = ('x', 'y', 'z')
-    light_sensor_gain = QueriedProperty(get_cmd="light_sensor_gain?", set_cmd="light_sensor_gain %d", response_string="light sensor gain %dx")
+    light_sensor_gain = QueriedProperty(get_cmd="light_sensor_gain?", set_cmd="light_sensor_gain %f", response_string="light sensor gain %f")
     light_sensor_integration_time = QueriedProperty(get_cmd="light_sensor_integration_time?", set_cmd="light_sensor_integration_time %d", response_string="light sensor integration time %d ms")
-    light_sensor_fullspectrum = QueriedProperty(get_cmd="light_sensor_fullspectrum?", response_string="%d")
+    light_sensor_intensity = QueriedProperty(get_cmd="light_sensor_intensity?", response_string="%d")
 
     def __init__(self, *args, **kwargs):
         super(OpenFlexureStage, self).__init__(*args, **kwargs)
@@ -42,6 +42,17 @@ class OpenFlexureStage(BasicSerialInstrument):
             self._backlash = blsh
         except:
             self._backlash = np.array([int(blsh)]*self.n_axes)
+            
+    @property
+    def light_sensor_gain_values(self):
+        """Allowable values for the light sensor's gain"""
+        response = self.query("light_sensor_gain_values?")
+        assert response.startswith("light sensor gains: ")
+        gain_strings = response[20:].split(", ")
+        try:
+            return [float(g.strip('x')) for g in gain_strings]
+        except:
+            return gain_strings
 
     def move_rel(self, displacement, axis=None, backlash=True):
         """Make a relative move, optionally correcting for backlash.
@@ -101,8 +112,15 @@ class OpenFlexureStage(BasicSerialInstrument):
         if type is not None:
             print "An exception occurred inside a with block, resetting "
             "position to its value at the start of the with block"
-            self.move_abs(self._position_on_enter)
-        
+            try:
+                self.move_abs(self._position_on_enter)
+            except:
+                print "A further error occurred trying to reset position."
+                
+    def query(self, message, *args, **kwargs):
+        """Send a message and read the response.  See BasicSerialInstrument.query()"""
+        time.sleep(0.05)
+        return BasicSerialInstrument.query(self, message, *args, **kwargs)
 
 if __name__ == "__main__":
     s = OpenFlexureStage('COM3')
