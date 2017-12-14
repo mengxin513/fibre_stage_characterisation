@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
-    with OpenFlexureStage("COM4") as stage:
+    with OpenFlexureStage("COM3") as stage:
     #with OpenFlexureStage("/dev/ttyUSB1") as stage:
         gains = stage.light_sensor_gain_values
         print gains
