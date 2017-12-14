@@ -24,8 +24,8 @@ def take_data(stage, points, samples, step_size, axis, start_time):
 if __name__ == "__main__":
     with OpenFlexureStage("/dev/ttyUSB0") as stage:
 
-        gain = [1, 25, 428, 9876]
-        stage.light_sensor_gain = 9876
+        gain = [1, 2, 4, 8, 16]
+        stage.light_sensor_gain = gain[-1]
         step_size = 500
         min_step = 50
         points = 5
@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
         stage.backlash = 256
 
-        df = data_file.Datafile(filename = "hillwalk.hdf5")
+        df = data_file.Datafile(filename = "hillwalk_maria.hdf5")
         raw_data = df.new_group("data", "hill walk")
 
         start_time = time.time()
