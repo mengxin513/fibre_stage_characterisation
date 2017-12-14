@@ -5,6 +5,7 @@ import math
 import time
 import h5py
 import data_file
+from contextlib import closing
 
 def take_data(stage, points, samples, step_size, axis, start_time):
     data = np.zeros((points, 6))
@@ -12,8 +13,10 @@ def take_data(stage, points, samples, step_size, axis, start_time):
     stage.move_rel(np.dot(-(step_size * math.trunc(points / 2)), axis))
     for i in range(points):
         stage.move_rel(np.dot(step_size, axis))
+        for j in range(2):
+            dump = stage.light_sensor_intensity #throw away readings
         for j in range(samples):
-            averages[j, 0] = stage.light_sensor_fullspectrum
+            averages[j, 0] = stage.light_sensor_intensity
             time.sleep(0.1)
         data[i, 0] = np.mean(averages, axis = 0)
         data[i, 1] = stage.light_sensor_gain
@@ -22,24 +25,25 @@ def take_data(stage, points, samples, step_size, axis, start_time):
     return data
 
 if __name__ == "__main__":
-    with OpenFlexureStage("/dev/ttyUSB0") as stage:
+    #with OpenFlexureStage("/dev/ttyUSB0") as stage, \
+    with OpenFlexureStage("COM3") as stage, \
+         closing(data_file.Datafile(filename = "hillwalk_maria.hdf5")) as df:
 
         gain = [1, 2, 4, 8, 16]
         stage.light_sensor_gain = gain[-1]
-        step_size = 500
-        min_step = 50
+        step_size = 200
+        min_step = 20
         points = 5
         samples = 5
 
         stage.backlash = 256
 
-        df = data_file.Datafile(filename = "hillwalk_maria.hdf5")
         raw_data = df.new_group("data", "hill walk")
 
         start_time = time.time()
 
         while step_size > min_step:
-            for axis in [[1, 0, 0], [0, 1, 0], [0, 0, 10]]:
+            for axis in [[1, 0, 0], [0, 1, 0], [0, 0, 3]]:
                 while True:
                     data = take_data(stage, points, samples, step_size, axis, start_time)
                     print data
@@ -55,7 +59,7 @@ if __name__ == "__main__":
                             stage.light_sensor_gain = np.max([g for g in gain if g < current_gain])
                             continue
                     coefficients = np.polyfit(np.dot(data[:, 3:], axis), data[:, 0], 2)
-                    if 2 * coefficients[0] > 0:
+                    if 2 * coefficients[0] > 0:  # there is no maximum in the parabola
                         coefficient = np.polyfit(np.dot(data[:, 3:], axis), data[:, 0], 1)
                         if coefficient[0] > 0:
                             print "straight line with positive gradient"
@@ -86,7 +90,7 @@ if __name__ == "__main__":
             step_size = np.rint(step_size / 2)
             print "Step size reduced to %d" %step_size
             
-        print stage.light_sensor_fullspectrum
+        print stage.light_sensor_intensity
         print stage.light_sensor_gain
         print stage.position
         
