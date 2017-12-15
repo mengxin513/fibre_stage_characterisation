@@ -9,7 +9,7 @@ from scipy import ndimage, signal
 import data_file
 
 print "Loading data..." #indication of the programme running
-df = h5py.File("repeat_2.hdf5", "r") #reads data from file
+df = h5py.File("repeat_3.hdf5", "r") #reads data from file
 n = len(df) #finds the number of items in the file
 dist = np.zeros([1, n]) #creates array of zeros
 mean_error = np.zeros([1, n])

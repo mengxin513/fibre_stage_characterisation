@@ -22,11 +22,12 @@ def get_numpy_image(camera, greyscale, videoport=True):
         return frame
 
 def find_template(template, frame, centremass=True,
-                      crosscorr=True, fraction=0.05):
+                      crosscorr=True, fraction=0.05, return_corr=False):
         if len(template.shape)==3: #if the template is a colour image (3 channels), make greyscale
             template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
         if len(frame.shape)==3: #if frame is a colour image (3 channels), make greyscale
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        frame = frame.astype(template.dtype)
         temp_w, temp_h = template.shape[::-1]
         if crosscorr: #use either Cross Correlation or Square Difference to match
             corr = cv2.matchTemplate(frame, template, cv2.TM_CCORR_NORMED)
@@ -41,4 +42,7 @@ def find_template(template, frame, centremass=True,
         else: #or max pixel
             min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(corr)
             centre = (max_loc[0] + temp_w/2.0, max_loc[1] + temp_h/2.0)
-        return centre
+        if return_corr:
+            return centre, corr
+        else:
+            return centre

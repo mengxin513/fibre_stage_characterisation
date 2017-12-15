@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     with picamera.PiCamera(resolution=(640,480)) as camera, OpenFlexureStage('/dev/ttyUSB0') as stage:
         
-        stage.backlash = 256
+        stage.backlash = 0
         #increased backlash correction value to get more accurate data
         move = 5000
         #maximum move distance without the templete travelling off field of view of the lens

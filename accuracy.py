@@ -19,9 +19,11 @@ import h5py
 
 if __name__ == "__main__":
 
-    with picamera.PiCamera(resolution=(640,480), framerate = 70) as camera, OpenFlexureStage('/dev/ttyUSB0') as stage:
+    with picamera.PiCamera(resolution=(640,480), framerate = 100) as camera, OpenFlexureStage('/dev/ttyUSB0') as stage:
         
-        N_frames = 4000
+        N_frames = 3000
+        step_size = 100
+        fr = 100
         
         #loads camera from picamera and set the stage as the arduino, lower resolution can speed up the programme
         camera.start_preview() #shows preview of camera
@@ -34,7 +36,7 @@ if __name__ == "__main__":
         
         stage_position=stage.position #store the initial position of the lens
 
-        df = data_file.Datafile(filename="accuracy.hdf5") #creates the .hdf5 file to save the data
+        df = data_file.Datafile(filename="accuracy_1112.hdf5") #creates the .hdf5 file to save the data
         data_gr = df.new_group("test_data", "A file of data collected to test this code works")
         #puts the data file into a group with description
 
@@ -47,7 +49,7 @@ if __name__ == "__main__":
         def movement(): #defines the function for moving the stage
             global event, stage
             while not event.wait(2):
-                stage.move_rel([100,0,0])
+                stage.move_rel([step_size,0,0])
                 #movement in X is movement in both X and Y, because the camera is mounted at a 45 degrees angle
 
         move_thread = threading.Thread(target=movement) #defines the thread
@@ -76,7 +78,7 @@ if __name__ == "__main__":
                 data[1,i] = spot_coord[0]
                 data[2,i] = spot_coord[1]
 
-        df.add_data(data,data_gr, "data") #writes data to .hdf5 file
+        df.add_data(data,data_gr, "data_%d_%d_%d" %(step_size, N_frames, fr)) #writes data to .hdf5 file
         
         matplotlib.rcParams.update({'font.size': 8})
 

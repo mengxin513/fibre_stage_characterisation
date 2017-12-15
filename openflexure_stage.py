@@ -17,9 +17,9 @@ class OpenFlexureStage(BasicSerialInstrument):
     step_time = QueriedProperty(get_cmd="dt?", set_cmd="dt %d", response_string="minimum step delay %d")
     ramp_time = QueriedProperty(get_cmd="ramp_time?", set_cmd="ramp_time %d", response_string="ramp time %d")
     axis_names = ('x', 'y', 'z')
-    light_sensor_gain = QueriedProperty(get_cmd="light_sensor_gain?", set_cmd="light_sensor_gain %d", response_string="light sensor gain %dx")
+    light_sensor_gain = QueriedProperty(get_cmd="light_sensor_gain?", set_cmd="light_sensor_gain %f", response_string="light sensor gain %f")
     light_sensor_integration_time = QueriedProperty(get_cmd="light_sensor_integration_time?", set_cmd="light_sensor_integration_time %d", response_string="light sensor integration time %d ms")
-    light_sensor_fullspectrum = QueriedProperty(get_cmd="light_sensor_fullspectrum?", response_string="%d")
+    light_sensor_intensity = QueriedProperty(get_cmd="light_sensor_intensity?", response_string="%d")
 
     def __init__(self, *args, **kwargs):
         super(OpenFlexureStage, self).__init__(*args, **kwargs)
@@ -42,6 +42,17 @@ class OpenFlexureStage(BasicSerialInstrument):
             self._backlash = blsh
         except:
             self._backlash = np.array([int(blsh)]*self.n_axes)
+            
+    @property
+    def light_sensor_gain_values(self):
+        """Allowable values for the light sensor's gain"""
+        response = self.query("light_sensor_gain_values?")
+        assert response.startswith("light sensor gains: ")
+        gain_strings = response[20:].split(", ")
+        try:
+            return [float(g.strip('x')) for g in gain_strings]
+        except:
+            return gain_strings
 
     def move_rel(self, displacement, axis=None, backlash=True):
         """Make a relative move, optionally correcting for backlash.
@@ -60,12 +71,13 @@ class OpenFlexureStage(BasicSerialInstrument):
             move[np.argmax(np.array(self.axis_names) == axis)] = displacement
             displacement = move
 
-        initial_move = displacement
-        initial_move -= np.where(self.backlash*displacement < 0,
-                                 self.backlash, np.zeros(self.n_axes, dtype=self.backlash.dtype))
-        self._move_rel_nobacklash(initial_move)
-        if np.any(displacement - initial_move != 0):
-            self._move_rel_nobacklash(displacement - initial_move)
+        displacement = np.array(displacement)
+        backlash_correction = np.where(self.backlash*displacement < 0,
+                                       self.backlash, 
+                                       np.zeros(self.n_axes, dtype=self.backlash.dtype))
+        self._move_rel_nobacklash(displacement - backlash_correction)
+        if np.any(backlash_correction != 0):
+            self._move_rel_nobacklash(backlash_correction)
 
     def _move_rel_nobacklash(self, displacement, axis=None):
         if axis is not None:
@@ -82,7 +94,8 @@ class OpenFlexureStage(BasicSerialInstrument):
     def move_abs(self, final, **kwargs):
         new_position = final#h.verify_vector(final)
         rel_mov = np.subtract(new_position, self.position)
-        return self.move_rel(rel_mov, **kwargs)
+        self.move_rel(rel_mov, **kwargs)
+        assert np.all(self.position == final), "Absolute move failed; didn't end up where we expected!"
 
     def focus_rel(self, z):
         """Move the stage in the Z direction by z micro steps."""
@@ -101,44 +114,49 @@ class OpenFlexureStage(BasicSerialInstrument):
         if type is not None:
             print ("An exception occurred inside a with block, resetting " +
                    "position to its value at the start of the with block")
-            time.sleep(0.5)
-            self.move_abs(self._position_on_enter)
+            try:
+                time.sleep(0.5)
+                self.move_abs(self._position_on_enter)
+            except Exception as e:
+                print("A further exception occurred when resetting position: {}".format(e))
             print "Move completed, raising exception..."
-            raise value
-        
+            raise value #propagate the exception
+                
+    def query(self, message, *args, **kwargs):
+        """Send a message and read the response.  See BasicSerialInstrument.query()"""
+        time.sleep(0.05)
+        return BasicSerialInstrument.query(self, message, *args, **kwargs)
 
 if __name__ == "__main__":
-    s = OpenFlexureStage('COM3')
-    time.sleep(1)
-    #print s.query("mrx 1000")
-    #time.sleep(1)
-    #print s.query("mrx -1000")
+    with OpenFlexureStage('COM3') as s:
+        time.sleep(1)
+        #print s.query("mrx 1000")
+        #time.sleep(1)
+        #print s.query("mrx -1000")
 
-    #first, try a bunch of single-axis moves with and without acceleration
-    for rt in [-1, 500000]:
-        s.ramp_time = rt
-        for axis in ['x', 'y', 'z']:
-            for move in [-512, 512, 1024, -1024]:
-                print "moving {} by {}".format(axis, move)
-                qs = "mr{} {}".format(axis, move)
-                print qs + ": " + s.query(str(qs))
-                print "Position: {}".format(s.position)
+        #first, try a bunch of single-axis moves with and without acceleration
+        for rt in [-1, 500000]:
+            s.ramp_time = rt
+            for axis in ['x', 'y', 'z']:
+                for move in [-512, 512, 1024, -1024]:
+                    print "moving {} by {}".format(axis, move)
+                    qs = "mr{} {}".format(axis, move)
+                    print qs + ": " + s.query(str(qs))
+                    print "Position: {}".format(s.position)
 
-    time.sleep(0.5)
-    for i in range(10):
-        print s.position
-    #next, describe a circle with the X and Y motors.  This is a harder test!
-    radius = 1024;
-    #print "Setting ramp time: <"+s.query("ramp_time -1")+">" #disable acceleration
-    #print "Extra Line: <"+s.readline()+">"
-    s.ramp_time = -1
-    for a in np.linspace(0, 2*np.pi, 50):
-        print "moving to angle {}".format(a)
-        oldpos = np.array(s.position)
-        print "Position: {}".format(oldpos)
-        newpos = np.array([np.cos(a), np.sin(a), 0]) * radius
-        displacement = newpos - oldpos
-        s.move_rel(list(displacement))
-    
-
-    s.close()
+        time.sleep(0.5)
+        for i in range(10):
+            print s.position
+        #next, describe a circle with the X and Y motors.  This is a harder test!
+        radius = 1024;
+        #print "Setting ramp time: <"+s.query("ramp_time -1")+">" #disable acceleration
+        #print "Extra Line: <"+s.readline()+">"
+        s.ramp_time = -1
+        for a in np.linspace(0, 2*np.pi, 50):
+            print "moving to angle {}".format(a)
+            oldpos = np.array(s.position)
+            print "Position: {}".format(oldpos)
+            newpos = np.array([np.cos(a), np.sin(a), 0]) * radius
+            displacement = newpos - oldpos
+            s.move_rel(list(displacement))
+       
