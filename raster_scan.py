@@ -6,9 +6,11 @@ import data_file
 import sys
 
 if __name__ == "__main__":
-    with OpenFlexureStage("/dev/ttyUSB0") as stage:
+    #with OpenFlexureStage("/dev/ttyUSB0") as stage:
+    with OpenFlexureStage("COM3") as stage:
         
-        stage.light_sensor_gain = 9876 #maximum gain to detect faint signal
+        gains = stage.light_sensor_gain_values
+        stage.light_sensor_gain = gains[-1] #maximum gain to detect faint signal
         length = 500 #initial side length of spiral
         step = 100 #move distance per step
         move = 0 #distance already moved
@@ -27,7 +29,7 @@ if __name__ == "__main__":
         intensity_data = np.zeros((1, 5000))
         stage_data = np.zeros((3, 5000))
 
-        reading = stage.light_sensor_fullspectrum
+        reading = stage.light_sensor_intensity
         stage_position = stage.position
         intensity_data[0, i] = reading
         stage_data[0:, i] = stage_position
@@ -37,7 +39,7 @@ if __name__ == "__main__":
         while(reading < threshold): #avoids background noise
             while(move <= length and reading < threshold):
                 stage.move_rel([step, 0, 0])
-                reading = stage.light_sensor_fullspectrum #takes a reading after each degree of movement
+                reading = stage.light_sensor_intensity #takes a reading after each degree of movement
                 intensity_data[0, i] = reading
                 stage_position = stage.position
                 stage_data[0:, i] = stage_position
@@ -48,7 +50,7 @@ if __name__ == "__main__":
             move = 0
             while(move <= length and reading < threshold):
                 stage.move_rel([0, step, 0])
-                reading = stage.light_sensor_fullspectrum
+                reading = stage.light_sensor_intensity
                 intensity_data[0, i] = reading
                 stage_position = stage.position
                 stage_data[0:, i] = stage_position
@@ -59,7 +61,7 @@ if __name__ == "__main__":
             move = 0
             while(move <= length and reading < threshold):
                 stage.move_rel([-step, 0, 0])
-                reading = stage.light_sensor_fullspectrum
+                reading = stage.light_sensor_intensity
                 intensity_data[0, i] = reading
                 stage_position = stage.position
                 stage_data[0:, i] = stage_position
@@ -70,7 +72,7 @@ if __name__ == "__main__":
             move = 0
             while(move <= length and reading < threshold):
                 stage.move_rel([0, -step, 0])
-                reading = stage.light_sensor_fullspectrum
+                reading = stage.light_sensor_intensity
                 intensity_data[0, i] = reading
                 stage_position = stage.position
                 stage_data[0:, i] = stage_position

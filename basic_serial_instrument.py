@@ -18,7 +18,6 @@ from serial import FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS
 from serial import PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE
 from serial import STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, STOPBITS_TWO
 import io
-import time
 
 class BasicSerialInstrument(object):
     """
@@ -117,7 +116,6 @@ class BasicSerialInstrument(object):
     def flush_input_buffer(self):
         """Make sure there's nothing waiting to be read, and clear the buffer if there is."""
         with self.communications_lock:
-            time.sleep(0.1)
             if self._ser.inWaiting()>0: self._ser.flushInput()
     def readline(self, timeout=None):
         """Read one line from the serial port."""
