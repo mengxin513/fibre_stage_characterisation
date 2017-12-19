@@ -23,7 +23,7 @@ class OpenFlexureStage(BasicSerialInstrument):
 
     def __init__(self, *args, **kwargs):
         super(OpenFlexureStage, self).__init__(*args, **kwargs)
-        assert self.readline().startswith("OpenFlexure Motor Board v0.3")
+        assert self.readline().startswith("OpenFlexure Motor Board")
         time.sleep(2)
 
     @property
